@@ -6,9 +6,12 @@
 extern "C" {
 #endif
 
+//application - dictionary or sort
+
 typedef
 struct list{
   void* value;
+  struct list* prev;
   struct list* right;
   struct list* left;
 } list;
@@ -34,9 +37,7 @@ struct backward_iterator{
 } backIter;
 
 list* leftTreeList(list* l);
-list* list_create(void* data);
 Tree* tree_create(int (*compar)(void *, void *));
-int list_insert(int (*compar)(void *,void *), list** startList, list* newList);
 int tree_insert(Tree* tree, void* data);
 int list_deepFirst(list* list, void*(*func)(void*, void*), void* userVarible);
 int list_remove(list* l);
