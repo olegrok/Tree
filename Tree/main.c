@@ -31,8 +31,17 @@ int main(){
   for(i = 0; i < N; i++){
     tree_insert(myTree, (arr + i));
   }
-  int* num = calloc(1, sizeof(int));
-  (*num) = 3;
+
+  forwIter* it = iter_begin(myTree);
+  printf("%d\n", *(int*)iter_get(it));
+  iter_next(it);
+  while(!iter_cmp(it, iter_end(myTree))){
+    printf("%d\n", *(int*)iter_get(it));
+    iter_next(it);
+  }
+
+
+  /*(*num) = 3;
   void *p = num;
   tree_insert(myTree, p);
   for_each(myTree, print, (void*)&i);
@@ -40,7 +49,7 @@ int main(){
   printf("head: %p\t head->prev: %p\n", head, head->prev);
   printf("head->left = %p\t head->right = %p\n", head->left, head->right);
   printf("head->left->prev = %p\t head->right->prev = %p\n", head->left->prev, head->right->prev);
-  list_remove(head->left);
+  list_remove(head->left, myTree);
   for_each(myTree, print, (void*)&i);
   printf("\n");
 
@@ -48,15 +57,18 @@ int main(){
   //printf("head: %p\t head->prev: %p\n", head, head->prev);
   //printf("head->left = %p\t head->right = %p\n", head->left, head->right);
   //printf("head->left->prev = %p\t head->right->prev = %p\n", head->left->prev, head->right->prev);
-  list_remove(head->right);
+  list_remove(head->right, myTree);
   for_each(myTree, print, (void*)&i);
   printf("\n");
 
   head = myTree->head;
 
-  /*do {
-    if(head)
+  do {
+    if(head){
       printf("head: %p\t head->prev: %p\n", head, head->prev);
+    }
+    else
+      break;
     if(head->left)
       printf("head->left = %p\t head->right = %p\n", head->left, head->right);
     if(head->right && head->left)
@@ -64,10 +76,13 @@ int main(){
     for_each(myTree, print, (void*)&i);
     printf("\n");
   }
-  while(list_remove(&head) != -1);*/
+  while(list_remove(head, myTree) != -1);
+  while(list_remove(head->right, myTree) != -1);
+  for_each(myTree, print, (void*)&i);
+  printf("\n");
 
   tree_destroy(myTree, 0);
 
-  free(p);
+  free(p);*/
   return 0;
 }

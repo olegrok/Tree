@@ -1,18 +1,40 @@
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "stack.h"
-#include "tree.h"
 typedef struct Stack Stack;
+typedef struct methods Met;
+extern Met TMet;
 
-/*
+typedef
+struct Tree{
+  struct list* head;
+  int (*compar)(void *, void *);   //1 (1>2); 0 (1=2) -> nothing; -1 (1 < 2) -> left
+} Tree;
+
 typedef
 struct list{
   void* value;
+  struct list* prev;
   struct list* right;
   struct list* left;
 } list;
-*/
+
+typedef
+struct forward_iterator{
+  void* object;
+  void* elem;
+  Stack* stk;
+  Met* m;
+} forwIter;
+
+typedef
+struct backward_iterator{
+  void* object;
+  void* elem;
+  Stack* stk;
+  Met* M;
+} backIter;
+
 
 list* leftTreeList(list* l);
 list* list_create(void* data);
@@ -20,11 +42,12 @@ Tree* tree_create(int (*compar)(void *, void *));
 int list_insert(int (*compar)(void *,void *), list** startList, list* newList, list** prev);
 int tree_insert(Tree* tree, void* data);
 int list_deepFirst(list* list, void*(*func)(void*, void*), void* userVarible);
-int list_remove(list* l);
+int list_remove(list* l, Tree* tree);
 int for_each(Tree* tree, void*(*func)(void*, void*), void* userVarible);
 list* leftTreeList(list* l);
 int branch_destroy(list* l, int flag);
 int tree_destroy(Tree* tree, int flag);
+
 
 list* list_create(void* data)
 {
@@ -84,14 +107,16 @@ int list_deepFirst(list* list, void*(*func)(void*, void*), void* userVarible){
     return 0;
 }
 
-int list_remove(list* l)
+int list_remove(list* l, Tree* tree)
 {
   if(l == NULL)
     return -1;
   list* newList = 0;
 
   if(l->prev == NULL)
-    return -1;
+      return -1;
+//    return remove_head(tree);
+
   if(l->left && !(l->right)){
     newList = l->left;
   }
@@ -103,7 +128,7 @@ int list_remove(list* l)
   if(l->left && l->right){
     newList = leftTreeList(l->right);
     l->value = newList->value;
-    list_remove(newList);
+    list_remove(newList, tree);
     return 0;
   }
 
@@ -114,6 +139,7 @@ int list_remove(list* l)
       l->prev->right = newList;
   }
 
+  printf("remove: list->value  = %d\n", *(int*)(l->value));
   if(newList)
     newList->prev = l->prev;
 
@@ -154,7 +180,8 @@ int tree_destroy(Tree* tree, int flag)
 {
   if(tree == NULL)
     return -1;
-  branch_destroy(tree->head, flag);
+  if(tree->head)
+    branch_destroy(tree->head, flag);
   free(tree);
   return 0;
 }
@@ -165,6 +192,7 @@ forwIter* iter_begin(Tree *tree){
   iter->object = (void*)tree;
   iter->stk = stack_create(1);
   iter->elem = (void*)tree->head;
+  iter->m = &TMet;
   return iter;
 }
 
@@ -173,6 +201,7 @@ forwIter* iter_end(Tree *tree){
   iter->object =(void*)tree;
   iter->stk = stack_create(1);
   iter->elem = NULL;
+  iter->m = &TMet;
   return iter;
 }
 
@@ -188,10 +217,10 @@ int iter_next(forwIter *it)
   if(it == NULL || it->elem == NULL)
     return -1;
   list* l = it->elem;
-  if(l->left)
-    stack_push(it->stk, l->left);
   if(l->right)
-    it->elem = (void*)(l->right);
+    stack_push(it->stk, l->right);
+  if(l->left)
+    it->elem = (void*)(l->left);
   else
     if(!stack_is_empty(it->stk))
       it->elem = stack_pop(it->stk);
@@ -205,5 +234,19 @@ int iter_destroy(forwIter *it){
     return -1;
   stack_destroy(it->stk);
   free(it);
+  return 0;
+}
+
+void* iter_get(forwIter *it){
+  if(!it || !it->elem)
+    return NULL;
+  list* l = it->elem;
+  return l->value;
+}
+
+int iter_remove(forwIter *it){
+  if(!it || !it->elem || !it->object)
+    return -1;
+  list_remove(it->object, it->elem);
   return 0;
 }
